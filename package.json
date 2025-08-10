@@ -19,6 +19,7 @@
     "form-data": "^4.0.4",
     "googleapis": "^118.0.0",
     "multer": "^2.0.2",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "pg": "^8.16.3"
   }
 }

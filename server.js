@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import n8nRouter from "./routes/n8n.js";
+import publicRouter from "./routes/public.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -27,9 +28,14 @@ const apiKeyMiddleware = (req, res, next) => {
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+app.get("/chats", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "chats.html"));
+});
 
 app.use("/n8n", apiKeyMiddleware, n8nRouter);
-const PORT = process.env.PORT || 3001;
+app.use("/api", publicRouter);
+
+const PORT = process.env.PORT || 8383;
 
 app.listen(PORT, () => {
   console.log(`API server running at http://localhost:${PORT}`);
