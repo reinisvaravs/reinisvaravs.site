@@ -146,18 +146,49 @@
       </div>
 
       <div class="endpoint">
-        <h3>/n8n/get_message_by_id</h3>
-        <p>Retrieve specific messages by ID from conversation history</p>
+        <h3>/n8n/get-calendar-availability</h3>
+        <p>
+          Fetches available time slots from a specified Google Calendar within a
+          given date range and working hours. Uses a Google Service Account to
+          authenticate and query the calendar. Defaults to Europe/Riga time zone
+          with DST awareness, but can be customized. Useful for booking
+          workflows, appointment schedulers, and automation requiring real-time
+          availability data.
+        </p>
         <div class="details">
           <strong>Headers:</strong>
           <ul>
             <li>x-api-key: Your API key</li>
-            <li>Content-Type: application/json</li>
           </ul>
           <strong>Body:</strong>
           <ul>
-            <li>message_id: The ID of the message to retrieve</li>
-            <li>session_id: The session ID for the conversation</li>
+            <li>google_calendar_email: Calendar account email</li>
+            <li>
+              google_service_account_key: Service account JSON (object or
+              string)
+            </li>
+            <li>
+              utc: UTC offset in hours (optional, defaults to Europe/Riga
+              current offset)
+            </li>
+            <li>
+              days: Number of days ahead to check (optional, defaults to 7)
+            </li>
+            <li>
+              work_start_hour: Start of workday in 24h format (optional,
+              defaults to 9)
+            </li>
+            <li>
+              work_end_hour: End of workday in 24h format (optional, defaults to
+              17)
+            </li>
+          </ul>
+          <strong>Response:</strong>
+          <ul>
+            <li>
+              JSON object with available time slots formatted for scheduling
+              workflows
+            </li>
           </ul>
         </div>
       </div>
