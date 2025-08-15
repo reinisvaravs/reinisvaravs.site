@@ -3,6 +3,7 @@ dotenv.config();
 import express from "express";
 import n8nRouter from "./routes/n8n.js";
 import publicRouter from "./routes/public.js";
+import apiRouter from "./routes/api.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -32,8 +33,9 @@ app.get("/chats", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "chats.html"));
 });
 
+app.use("/", publicRouter);
 app.use("/n8n", apiKeyMiddleware, n8nRouter);
-app.use("/api", publicRouter);
+app.use("/api", apiKeyMiddleware, apiRouter);
 
 const PORT = process.env.PORT || 8383;
 
