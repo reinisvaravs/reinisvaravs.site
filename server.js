@@ -35,7 +35,7 @@ app.get("/chats", (req, res) => {
 
 app.use("/", publicRouter);
 app.use("/n8n", apiKeyMiddleware, n8nRouter);
-app.use("/api", apiRouter);
+app.use("/api", apiKeyMiddleware, apiRouter);
 
 const PORT = process.env.PORT || 8383;
 
