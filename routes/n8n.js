@@ -741,6 +741,9 @@ router.post("/send_event_email", async (req, res) => {
       organizer_email = "",
       impersonate_email, // Email to impersonate (e.g., hello@setinbound.com)
 
+      // Optional monitoring emails (BCC for developers/hosts)
+      monitoring_emails = [], // Array of email addresses to BCC for monitoring
+
       // Email template customization variables
       company_name = "Setinbound Calendar Service",
       email_subject_prefix = "Event Invitation",
@@ -809,6 +812,21 @@ router.post("/send_event_email", async (req, res) => {
       }
     }
 
+    // Validate monitoring emails (optional)
+    if (monitoring_emails && Array.isArray(monitoring_emails)) {
+      for (const monitoringEmail of monitoring_emails) {
+        if (!emailRegex.test(monitoringEmail)) {
+          return res.status(400).json({
+            error: `Invalid monitoring email format: ${monitoringEmail}`,
+          });
+        }
+      }
+    } else if (monitoring_emails && !Array.isArray(monitoring_emails)) {
+      return res.status(400).json({
+        error: "monitoring_emails must be an array of email addresses",
+      });
+    }
+
     // Parse service account credentials
     let serviceAccountKeyObject;
     try {
@@ -843,6 +861,7 @@ router.post("/send_event_email", async (req, res) => {
       start_time,
       end_time,
       attendees_count: attendees.length,
+      monitoring_emails_count: monitoring_emails.length,
       impersonate_email,
     });
 
@@ -872,7 +891,8 @@ router.post("/send_event_email", async (req, res) => {
           sender_name: sender_name || organizer_name || "Calendar Service",
         },
         attendees,
-        impersonate_email
+        impersonate_email,
+        monitoring_emails // Pass monitoring emails as 4th parameter
       );
 
       return res.status(200).json({
@@ -882,6 +902,8 @@ router.post("/send_event_email", async (req, res) => {
           thread_id: emailResult.threadId,
           sent_to: emailResult.sentTo,
           sent_count: emailResult.sentCount,
+          monitoring_emails: emailResult.monitoringEmails,
+          total_emails_sent: emailResult.totalEmailsSent,
         },
         params: {
           event_title,
@@ -889,6 +911,7 @@ router.post("/send_event_email", async (req, res) => {
           end_time,
           timezone,
           attendees_count: attendees.length,
+          monitoring_emails_count: monitoring_emails.length,
           impersonate_email,
         },
       });

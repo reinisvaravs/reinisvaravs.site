@@ -331,9 +331,15 @@ ${footer_message}
    * @param {Object} eventData - Event details
    * @param {Array} attendees - List of attendee emails
    * @param {string} impersonateEmail - Email to impersonate (organizer)
+   * @param {Array} monitoringEmails - Optional BCC emails for monitoring (default: [])
    * @returns {Object} Email sending results
    */
-  async sendEventEmail(eventData, attendees, impersonateEmail) {
+  async sendEventEmail(
+    eventData,
+    attendees,
+    impersonateEmail,
+    monitoringEmails = []
+  ) {
     try {
       const gmail = this.createGmailClient(impersonateEmail);
 
@@ -353,9 +359,16 @@ ${footer_message}
         ? `"${senderDisplayName}" <${impersonateEmail}>`
         : impersonateEmail;
 
-      const emailLines = [
-        `From: ${fromHeader}`,
-        `To: ${attendees.join(", ")}`,
+      // Build email headers
+      const emailLines = [`From: ${fromHeader}`, `To: ${attendees.join(", ")}`];
+
+      // Add BCC header if monitoring emails are provided
+      if (monitoringEmails && monitoringEmails.length > 0) {
+        emailLines.push(`Bcc: ${monitoringEmails.join(", ")}`);
+      }
+
+      // Continue with remaining headers and content
+      emailLines.push(
         `Subject: ${subjectLine}`,
         "MIME-Version: 1.0",
         'Content-Type: multipart/alternative; boundary="boundary123"',
@@ -370,8 +383,8 @@ ${footer_message}
         "",
         htmlContent,
         "",
-        "--boundary123--",
-      ];
+        "--boundary123--"
+      );
 
       const email = emailLines.join("\r\n");
       const encodedEmail = Buffer.from(email)
@@ -391,6 +404,7 @@ ${footer_message}
         messageId: response.data.id,
         threadId: response.data.threadId,
         attendees: attendees.length,
+        monitoringEmails: monitoringEmails.length,
       });
 
       return {
@@ -399,6 +413,8 @@ ${footer_message}
         threadId: response.data.threadId,
         sentTo: attendees,
         sentCount: attendees.length,
+        monitoringEmails: monitoringEmails,
+        totalEmailsSent: attendees.length + monitoringEmails.length,
       };
     } catch (error) {
       console.error("[EmailService] Error sending email:", error);
