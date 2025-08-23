@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chats • Viewer</title>
+    <style>
+      :root {
+        --bg: #0b0c0f;
+        --panel: #111317;
+        --muted: #9aa0a6;
+        --text: #e8eaed;
+        --border: #22252b;
+        --accent: #4f8cff;
+        --accent-2: #21cfa7;
+        --chip: #1b1f27;
+        --user: #ffd166;
+        --assistant: #96e6a1;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI,
+          Roboto, Arial, sans-serif;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f7f9;
+          --panel: #ffffff;
+          --muted: #5f6368;
+          --text: #202124;
+          --border: #e6e8ee;
+          --accent: #2f6bff;
+          --accent-2: #0fb48a;
+          --chip: #f1f3f7;
+          --user: #a05f00;
+          --assistant: #0d6d3d;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      header.top {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        backdrop-filter: blur(8px);
+        background: color-mix(in oklab, var(--bg) 80%, transparent);
+        border-bottom: 1px solid var(--border);
+      }
+      header.top .bar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 24px;
+        max-width: 1440px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 8px 0 0;
+      }
+      .spacer {
+        flex: 1;
+      }
+
+      input,
+      select,
+      button {
+        font: inherit;
+        color: var(--text);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        padding: 8px 10px;
+        border-radius: 10px;
+        outline: none;
+      }
+      input::placeholder {
+        color: var(--muted);
+      }
+      button {
+        cursor: pointer;
+        transition: 120ms transform ease;
+      }
+      button:hover {
+        transform: translateY(-1px);
+      }
+      .btn {
+        background: var(--accent);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+      }
+      .ghost {
+        background: var(--chip);
+      }
+      .chip {
+        background: var(--chip);
+        padding: 6px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .stats {
+        margin: 16px 0;
+        color: var(--muted);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(410px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: clip;
+        display: flex;
+        flex-direction: column;
+        min-height: 140px;
+        box-shadow: 0 6px 16px color-mix(in oklab, #000 15%, transparent);
+      }
+      .card .head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .sid {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .meta {
+        margin-left: auto;
+        text-align: right;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .source {
+        padding: 8px 14px;
+        color: var(--muted);
+        border-bottom: 1px dashed var(--border);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .source .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        display: inline-block;
+      }
+      .copy {
+        background: transparent;
+        border: 1px solid var(--border);
+        padding: 6px 8px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .copy:hover {
+        color: var(--text);
+      }
+
+      .messages {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 420px;
+        overflow: auto;
+      }
+      .msg {
+        border: 1px solid var(--border);
+        background: color-mix(in oklab, var(--panel) 88%, #000 12%);
+        border-radius: 12px;
+        padding: 10px 12px;
+      }
+      .role {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        opacity: 0.8;
+      }
+      .role[data-r="user"] {
+        color: var(--user);
+      }
+      .role[data-r="assistant"] {
+        color: var(--assistant);
+      }
+      .content {
+        white-space: pre-wrap;
+        margin-top: 6px;
+        line-height: 1.35;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .right {
+        margin-left: auto;
+      }
+
+      .card .foot {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        border-top: 1px solid var(--border);
+        padding: 8px 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .skeleton {
+        border: 1px solid var(--border);
+        height: 120px;
+        border-radius: 16px;
+        background: linear-gradient(
+          90deg,
+          color-mix(in oklab, var(--panel) 90%, #fff 10%) 25%,
+          var(--panel) 37%,
+          color-mix(in oklab, var(--panel) 90%, #fff 10%) 63%
+        );
+        background-size: 400% 100%;
+        animation: sh 1.4s ease infinite;
+      }
+      @keyframes sh {
+        0% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0 50%;
+        }
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="bar">
+        <h1>Chats</h1>
+        <div class="controls">
+          <label class="row">
+            <span class="muted">Limit</span>
+            <input
+              id="limit"
+              type="number"
+              min="1"
+              max="200"
+              value="50"
+              style="width: 84px"
+            />
+          </label>
+          <select id="platform" title="Platform filter">
+            <option value="">All platforms</option>
+          </select>
+          <select id="lastN" title="How many last messages to show">
+            <option value="0">Full threads</option>
+            <option value="3">Last 3</option>
+            <option value="5">Last 5</option>
+            <option value="10">Last 10</option>
+          </select>
+          <input
+            id="filter"
+            type="text"
+            placeholder="Search session, name, text…"
+            style="min-width: 260px"
+          />
+          <button id="refresh" class="btn">Refresh</button>
+          <button id="auto" class="ghost">Auto: Off</button>
+          <label class="row">
+            <input id="compact" type="checkbox" />
+            <span class="muted">Compact</span>
+          </label>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div id="stats" class="stats">
+        <span id="count" class="chip">Loading…</span>
+        <span id="err" class="muted"></span>
+      </div>
+      <div id="grid" class="grid">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </div>
+
+    <script>
+      // If your router is mounted elsewhere, tweak this:
+      const API_URL = "/chats-data"; // e.g., "/chats" or "/api/chats"
+
+      const els = {
+        limit: document.getElementById("limit"),
+        platform: document.getElementById("platform"),
+        lastN: document.getElementById("lastN"),
+        filter: document.getElementById("filter"),
+        refresh: document.getElementById("refresh"),
+        auto: document.getElementById("auto"),
+        compact: document.getElementById("compact"),
+        grid: document.getElementById("grid"),
+        count: document.getElementById("count"),
+        err: document.getElementById("err"),
+      };
+
+      let cache = [];
+      let autoTimer = null;
+
+      const esc = (s) =>
+        String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+
+      const fmtDate = (iso) => {
+        try {
+          return new Date(iso).toLocaleString();
+        } catch {
+          return iso;
+        }
+      };
+
+      const maskPhone = (v) =>
+        v ? String(v).replace(/\d(?=\d{2})/g, "•") : "—";
+
+      async function load() {
+        els.err.textContent = "";
+        const limit = Math.min(
+          Math.max(parseInt(els.limit.value || "50", 10), 1),
+          200
+        );
+        try {
+          const r = await fetch(`${API_URL}?limit=${limit}`, {
+            headers: { Accept: "application/json" },
+          });
+          const data = await r.json();
+          if (!r.ok || !data.ok)
+            throw new Error(data.error || `HTTP ${r.status}`);
+
+          cache = data.chats || [];
+          buildPlatformFilter(cache);
+          render();
+        } catch (e) {
+          els.err.textContent = `Failed to load: ${e.message}`;
+          els.grid.innerHTML = "";
+          els.count.textContent = "0";
+        }
+      }
+
+      function buildPlatformFilter(list) {
+        const seen = new Set();
+        list.forEach((c) => {
+          if (c.source?.platform) seen.add(String(c.source.platform));
+        });
+        const current = els.platform.value;
+        els.platform.innerHTML =
+          `<option value="">All platforms</option>` +
+          Array.from(seen)
+            .sort()
+            .map((p) => `<option value="${esc(p)}">${esc(p)}</option>`)
+            .join("");
+        if (Array.from(seen).includes(current)) els.platform.value = current;
+      }
+
+      function filterData() {
+        const q = els.filter.value.trim().toLowerCase();
+        const platform = els.platform.value.trim().toLowerCase();
+
+        let list = cache;
+        if (platform) {
+          list = list.filter(
+            (c) => (c.source?.platform || "").toLowerCase() === platform
+          );
+        }
+        if (q) {
+          list = list.filter((c) => {
+            const src = c.source || {};
+            return (
+              c.session_id.toLowerCase().includes(q) ||
+              (src.name && String(src.name).toLowerCase().includes(q)) ||
+              (src.platform &&
+                String(src.platform).toLowerCase().includes(q)) ||
+              (src.contact && String(src.contact).toLowerCase().includes(q)) ||
+              (c.messages || []).some(
+                (m) =>
+                  (m.role && m.role.toLowerCase().includes(q)) ||
+                  (m.content && m.content.toLowerCase().includes(q))
+              )
+            );
+          });
+        }
+        return list;
+      }
+
+      function render() {
+        const lastN = parseInt(els.lastN.value, 10) || 0;
+        const compact = els.compact.checked;
+        const list = filterData();
+
+        els.count.textContent = `Showing ${list.length} of ${cache.length}`;
+        els.grid.classList.toggle("compact", compact);
+
+        const html = list
+          .map((c) => {
+            const src = c.source || {};
+            const msgs = Array.isArray(c.messages)
+              ? lastN > 0
+                ? c.messages.slice(-lastN)
+                : c.messages
+              : [];
+
+            const msgsHtml = msgs
+              .map(
+                (m) => `
+          <div class="msg">
+            <div class="role" data-r="${esc(m.role || "")}">${esc(
+                  (m.role || "").toUpperCase()
+                )}</div>
+            <div class="content">${esc(m.content || "")}</div>
+          </div>
+        `
+              )
+              .join("");
+
+            const phone = maskPhone(src.contact);
+
+            return `
+          <div class="card" data-id="${esc(c.session_id)}">
+            <div class="head">
+              <div class="sid">Session ${esc(c.session_id)}</div>
+              <div class="meta">
+                <div>${esc(fmtDate(c.created_at))}</div>
+              </div>
+            </div>
+            <div class="source">
+              <span class="dot"></span>
+              <span>${esc(src.platform || "—")}</span>
+              <span class="muted">•</span>
+              <span>${esc(src.name || "—")}</span>
+              <span class="muted">•</span>
+              <span title="contact">${esc(phone)}</span>
+              <span class="right"></span>
+              <button class="copy" data-copy="${esc(
+                c.session_id
+              )}" title="Copy session id">Copy ID</button>
+              <button class="copy" data-toggle="1" title="Collapse/Expand">Toggle</button>
+            </div>
+            <div class="messages">${
+              msgsHtml || '<div class="muted">No messages</div>'
+            }</div>
+            <div class="foot">
+              <span class="muted">Msgs: ${msgs.length}</span>
+              <span class="muted">•</span>
+              <button class="copy" data-json="${encodeURIComponent(
+                JSON.stringify(c)
+              )}">View JSON</button>
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+
+        els.grid.innerHTML = html;
+
+        // Wire per-card buttons
+        els.grid.querySelectorAll("button[data-copy]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            navigator.clipboard.writeText(btn.getAttribute("data-copy") || "");
+            btn.textContent = "Copied";
+            setTimeout(() => (btn.textContent = "Copy ID"), 800);
+          });
+        });
+        els.grid.querySelectorAll("button[data-toggle]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const card = btn.closest(".card");
+            const box = card.querySelector(".messages");
+            box.classList.toggle("hidden");
+          });
+        });
+        els.grid.querySelectorAll("button[data-json]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const raw = decodeURIComponent(btn.getAttribute("data-json") || "");
+            const pretty = JSON.stringify(JSON.parse(raw), null, 2);
+            const w = window.open("", "_blank", "width=720,height=640");
+            w.document.write(
+              `<pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;padding:16px;margin:0;background:#0b0c0f;color:#e8eaed;">${esc(
+                pretty
+              )}</pre>`
+            );
+          });
+        });
+      }
+
+      // Events
+      els.refresh.addEventListener("click", load);
+      els.limit.addEventListener("change", load);
+      els.platform.addEventListener("change", render);
+      els.lastN.addEventListener("change", render);
+      els.filter.addEventListener("input", render);
+      els.compact.addEventListener("change", () => {
+        document.body.classList.toggle("compact", els.compact.checked);
+        render();
+      });
+      els.auto.addEventListener("click", () => {
+        if (autoTimer) {
+          clearInterval(autoTimer);
+          autoTimer = null;
+          els.auto.textContent = "Auto: Off";
+        } else {
+          autoTimer = setInterval(load, 5000);
+          els.auto.textContent = "Auto: 5s";
+        }
+      });
+
+      // Start
+      load();
+    </script>
+  </body>
+</html>
