@@ -20,6 +20,7 @@ A comprehensive Google Calendar and Gmail integration service built with Node.js
 - **Custom Branding**: Fully customizable company branding and messaging
 - **Dynamic Content**: Conditional rendering based on available event data
 - **Multiple Recipients**: Send to multiple attendees with one API call
+- **Monitoring Emails**: Optional BCC monitoring for developers and administrators
 - **Gmail API Integration**: Secure email sending via service account impersonation
 
 ### 🔒 Security & Authentication
@@ -176,6 +177,9 @@ Send professional HTML event confirmation emails.
   "organizer_email": "john@company.com",
   "impersonate_email": "admin@company.com",
 
+  // Optional monitoring emails (BCC)
+  "monitoring_emails": ["developer@company.com", "admin@company.com"],
+
   "company_name": "ACME Corporation",
   "email_subject_prefix": "Meeting Invitation",
   "email_header_title": "Meeting Confirmed",
@@ -183,6 +187,42 @@ Send professional HTML event confirmation emails.
   "footer_company_name": "ACME Corp Calendar System",
   "footer_message": "This is an automated confirmation",
   "sender_name": "John Smith, CEO"
+}
+```
+
+**Key Parameters:**
+
+- **Required:**
+
+  - `event_title` - Event name/title
+  - `start_time` - Event start time (ISO 8601 format)
+  - `end_time` - Event end time (ISO 8601 format)
+  - `attendees` - Array of attendee email addresses
+  - `impersonate_email` - Email address to send from (must have domain-wide delegation)
+
+- **Optional:**
+  - `monitoring_emails` - Array of BCC email addresses for monitoring/administration
+  - `event_description` - Event description text
+  - `timezone` - Event timezone (defaults to "Europe/Riga")
+  - `meet_link` - Google Meet link URL
+  - `event_link` - Calendar event link URL
+  - `organizer_name` - Organizer display name
+  - `organizer_email` - Organizer email address
+  - Custom branding fields (company_name, email_subject_prefix, etc.)
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message_id": "198d906040630688",
+    "thread_id": "198d906040630688",
+    "sent_to": ["user1@company.com", "user2@company.com"],
+    "sent_count": 2,
+    "monitoring_emails": ["developer@company.com"],
+    "total_emails_sent": 3
+  }
 }
 ```
 
@@ -210,6 +250,7 @@ node tests/test_email_sending.js
 - ✅ **Calendar Availability**: Real-time free/busy checking
 - ✅ **Event Booking**: Full event creation with Google Meet links
 - ✅ **Email Sending**: Professional HTML emails with custom branding
+- ✅ **Monitoring Emails**: BCC functionality for developer/admin oversight
 - ✅ **Error Handling**: Comprehensive validation and error responses
 - ✅ **Authentication**: Service account and API key validation
 - ✅ **Timezone Support**: Multi-timezone handling and conversion
@@ -236,6 +277,13 @@ node tests/test_email_sending.js
 - **Subject Lines**: Custom prefixes and formatting
 - **Header Content**: Personalized titles and subtitles
 - **Footer Messages**: Custom footer text and branding
+
+### Monitoring & Administration
+
+- **BCC Monitoring**: Optional `monitoring_emails` field sends copies to developers/administrators
+- **Privacy Protection**: Primary attendees cannot see monitoring email addresses
+- **Multiple Monitors**: Support for multiple monitoring email addresses
+- **Optional Feature**: Works seamlessly with or without monitoring emails
 - **Organizer Display**: Professional sender information
 
 ## 🔐 Security Best Practices
