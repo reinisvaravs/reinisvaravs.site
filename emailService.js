@@ -346,8 +346,15 @@ ${footer_message}
         ? `${eventData.email_subject_prefix}: ${eventData.event_title}`
         : `Event Invitation: ${eventData.event_title}`;
 
+      // Create From header with display name
+      const senderDisplayName =
+        eventData.sender_name || eventData.organizer_name || "Calendar Service";
+      const fromHeader = senderDisplayName
+        ? `"${senderDisplayName}" <${impersonateEmail}>`
+        : impersonateEmail;
+
       const emailLines = [
-        `From: ${impersonateEmail}`,
+        `From: ${fromHeader}`,
         `To: ${attendees.join(", ")}`,
         `Subject: ${subjectLine}`,
         "MIME-Version: 1.0",
