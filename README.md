@@ -40,14 +40,17 @@ reinisvaravs.site/
 
 ### 🧪 Testing
 
-- **Comprehensive Tests**: `node tests/test_booking_best_case.js`
+- **Calendar Availability**: `node tests/test_availability.js`
+- **Comprehensive Booking Tests**: `node tests/test_booking_best_case.js`
 - **Real Meeting Booking**: `node tests/book_my_meeting.js`
+- **Production Email Design**: `node tests/test_production_email.js`
 - **Test Runner**: `node tests/run_tests.js --all`
 
 ### 🌐 API Endpoints
 
 - **POST** `/n8n/get_calendar_availability` - Check calendar availability
 - **POST** `/n8n/book_calendar_event` - Create calendar events with Google Meet
+- **POST** `/n8n/send_event_email` - Send HTML event summary emails to attendees
 
 ### 🔐 Security
 

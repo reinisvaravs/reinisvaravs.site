@@ -12,6 +12,7 @@ import {
   formattedCalendarAvailability,
   bookCalendarEvent,
 } from "../gCalendar.js";
+import EmailService from "../emailService.js";
 
 const router = express.Router();
 
@@ -701,6 +702,221 @@ router.post("/book_calendar_event", async (req, res) => {
     }
   } catch (err) {
     console.error("[API] Error in /book_calendar_event:", err.stack || err);
+    return res.status(500).json({
+      error: "Internal server error",
+      message: err.message || String(err),
+    });
+  }
+});
+
+// Send event summary email to attendees
+router.post("/send_event_email", async (req, res) => {
+  try {
+    // Validate request body exists
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({
+        error: "Request body is required and must be an object",
+      });
+    }
+
+    // Get API key for authentication
+    const apiKey = req.headers["x-api-key"];
+    if (!apiKey) {
+      return res.status(401).json({
+        error: "Missing x-api-key header",
+      });
+    }
+
+    // Extract variables from request body
+    const {
+      event_title,
+      event_description = "",
+      start_time,
+      end_time,
+      timezone = "Europe/Riga",
+      attendees = [],
+      meet_link = "",
+      event_link = "",
+      organizer_name = "",
+      organizer_email = "",
+      impersonate_email, // Email to impersonate (e.g., hello@setinbound.com)
+
+      // Email template customization variables
+      company_name = "Setinbound Calendar Service",
+      email_subject_prefix = "Event Invitation",
+      email_header_title = "Event Confirmation",
+      email_header_subtitle = "Event scheduled successfully",
+      footer_company_name = "",
+      footer_message = "Auto-generated confirmation",
+      sender_name = "", // Name displayed as sender in email
+    } = req.body;
+
+    // Get service account key from environment (secret - not from body)
+    const google_service_account_key = process.env.GOOGLE_CREDENTIALS;
+
+    // Validate required variables
+    if (!event_title) {
+      return res.status(400).json({
+        error: "event_title is required in request body",
+      });
+    }
+
+    if (!start_time) {
+      return res.status(400).json({
+        error: "start_time is required in request body",
+      });
+    }
+
+    if (!end_time) {
+      return res.status(400).json({
+        error: "end_time is required in request body",
+      });
+    }
+
+    if (!attendees || !Array.isArray(attendees) || attendees.length === 0) {
+      return res.status(400).json({
+        error: "attendees must be a non-empty array of email addresses",
+      });
+    }
+
+    if (!impersonate_email) {
+      return res.status(400).json({
+        error: "impersonate_email is required in request body",
+      });
+    }
+
+    if (!google_service_account_key) {
+      return res.status(500).json({
+        error: "Service account credentials not configured",
+        message: "GOOGLE_CREDENTIALS environment variable is missing",
+      });
+    }
+
+    // Validate email format for impersonate_email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(impersonate_email)) {
+      return res.status(400).json({
+        error: "impersonate_email must be a valid email format",
+      });
+    }
+
+    // Validate attendee emails
+    for (const attendee of attendees) {
+      if (!emailRegex.test(attendee)) {
+        return res.status(400).json({
+          error: `Invalid attendee email format: ${attendee}`,
+        });
+      }
+    }
+
+    // Parse service account credentials
+    let serviceAccountKeyObject;
+    try {
+      serviceAccountKeyObject = JSON.parse(google_service_account_key);
+    } catch (parseError) {
+      console.error(
+        "[API] Error parsing service account credentials:",
+        parseError
+      );
+      return res.status(500).json({
+        error: "Invalid service account credentials format",
+        message: "Service account key must be valid JSON",
+      });
+    }
+
+    // Validate service account structure
+    if (
+      !serviceAccountKeyObject.client_email ||
+      !serviceAccountKeyObject.private_key ||
+      !serviceAccountKeyObject.project_id
+    ) {
+      return res.status(500).json({
+        error: "Invalid service account credentials structure",
+        message:
+          "Service account key must contain client_email, private_key, and project_id fields",
+      });
+    }
+
+    // Log the email request for debugging
+    console.log("[API] Event email request:", {
+      event_title,
+      start_time,
+      end_time,
+      attendees_count: attendees.length,
+      impersonate_email,
+    });
+
+    // Create email service and send email
+    try {
+      const emailService = new EmailService(serviceAccountKeyObject);
+
+      const emailResult = await emailService.sendEventEmail(
+        {
+          event_title,
+          event_description,
+          start_time,
+          end_time,
+          timezone,
+          meet_link,
+          event_link,
+          organizer_name,
+          organizer_email,
+
+          // Template customization
+          company_name,
+          email_subject_prefix,
+          email_header_title,
+          email_header_subtitle,
+          footer_company_name: footer_company_name || company_name,
+          footer_message,
+          sender_name: sender_name || organizer_name || "Calendar Service",
+        },
+        attendees,
+        impersonate_email
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          message_id: emailResult.messageId,
+          thread_id: emailResult.threadId,
+          sent_to: emailResult.sentTo,
+          sent_count: emailResult.sentCount,
+        },
+        params: {
+          event_title,
+          start_time,
+          end_time,
+          timezone,
+          attendees_count: attendees.length,
+          impersonate_email,
+        },
+      });
+    } catch (emailError) {
+      console.error("[API] Email sending error:", emailError.message);
+
+      if (emailError.message.includes("Access denied")) {
+        return res.status(403).json({
+          error: "Access denied",
+          message: "Check domain-wide delegation and Gmail API scopes",
+        });
+      }
+
+      if (emailError.message.includes("Invalid email format")) {
+        return res.status(400).json({
+          error: "Invalid email format",
+          message: emailError.message,
+        });
+      }
+
+      return res.status(500).json({
+        error: "Email sending failed",
+        message:
+          emailError.message || "An error occurred while sending the email",
+      });
+    }
+  } catch (err) {
+    console.error("[API] Error in /send_event_email:", err.stack || err);
     return res.status(500).json({
       error: "Internal server error",
       message: err.message || String(err),
