@@ -266,6 +266,30 @@
       .hidden {
         display: none;
       }
+
+      /* Single chat view styles */
+      .single-view {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .back-btn {
+        background: var(--accent);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .single-chat {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: clip;
+        box-shadow: 0 6px 16px color-mix(in oklab, #000 15%, transparent);
+      }
+      .single-chat .messages {
+        max-height: 600px;
+        overflow-y: auto;
+      }
     </style>
   </head>
   <body>
@@ -320,6 +344,10 @@
         <div class="skeleton"></div>
         <div class="skeleton"></div>
       </div>
+      <div id="single-view" class="single-view hidden">
+        <button id="back-btn" class="back-btn">← Back to All Chats</button>
+        <div id="single-chat" class="single-chat"></div>
+      </div>
     </div>
 
     <script>
@@ -337,10 +365,14 @@
         grid: document.getElementById("grid"),
         count: document.getElementById("count"),
         err: document.getElementById("err"),
+        singleView: document.getElementById("single-view"),
+        singleChat: document.getElementById("single-chat"),
+        backBtn: document.getElementById("back-btn"),
       };
 
       let cache = [];
       let autoTimer = null;
+      let currentSingleChat = null;
 
       const esc = (s) =>
         String(s)
@@ -361,6 +393,109 @@
       const maskPhone = (v) =>
         v ? String(v).replace(/\d(?=\d{2})/g, "•") : "—";
 
+      function showSingleChat(sessionId) {
+        const chat = cache.find((c) => c.session_id === sessionId);
+        if (!chat) return;
+
+        currentSingleChat = sessionId;
+        els.grid.classList.add("hidden");
+        els.singleView.classList.remove("hidden");
+
+        renderSingleChat(chat);
+
+        // Scroll to bottom if auto-refresh is enabled
+        if (autoTimer) {
+          setTimeout(() => scrollToBottom(), 100);
+        }
+      }
+
+      function showAllChats() {
+        currentSingleChat = null;
+        els.singleView.classList.add("hidden");
+        els.grid.classList.remove("hidden");
+        render();
+      }
+
+      function scrollToBottom() {
+        const messagesDiv = els.singleChat.querySelector(".messages");
+        if (messagesDiv) {
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+      }
+
+      function renderSingleChat(chat) {
+        const src = chat.source || {};
+        const msgs = Array.isArray(chat.messages) ? chat.messages : [];
+
+        const msgsHtml = msgs
+          .map(
+            (m) => `
+        <div class="msg">
+          <div class="role" data-r="${esc(m.role || "")}">${esc(
+              (m.role || "").toUpperCase()
+            )}</div>
+          <div class="content">${esc(m.content || "")}</div>
+        </div>
+      `
+          )
+          .join("");
+
+        const phone = maskPhone(src.contact);
+
+        els.singleChat.innerHTML = `
+          <div class="head">
+            <div class="sid">Session ${esc(chat.session_id)}</div>
+            <div class="meta">
+              <div>${esc(fmtDate(chat.created_at))}</div>
+            </div>
+          </div>
+          <div class="source">
+            <span class="dot"></span>
+            <span>${esc(src.platform || "—")}</span>
+            <span class="muted">•</span>
+            <span>${esc(src.name || "—")}</span>
+            <span class="muted">•</span>
+            <span title="contact">${esc(phone)}</span>
+            <span class="right"></span>
+            <button class="copy" data-copy="${esc(
+              chat.session_id
+            )}" title="Copy session id">Copy ID</button>
+          </div>
+          <div class="messages">${
+            msgsHtml || '<div class="muted">No messages</div>'
+          }</div>
+          <div class="foot">
+            <span class="muted">Msgs: ${msgs.length}</span>
+            <span class="muted">•</span>
+            <button class="copy" data-json="${encodeURIComponent(
+              JSON.stringify(chat)
+            )}">View JSON</button>
+          </div>
+        `;
+
+        // Wire buttons for single chat view
+        els.singleChat.querySelectorAll("button[data-copy]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            navigator.clipboard.writeText(btn.getAttribute("data-copy") || "");
+            btn.textContent = "Copied";
+            setTimeout(() => (btn.textContent = "Copy ID"), 800);
+          });
+        });
+
+        els.singleChat.querySelectorAll("button[data-json]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const raw = decodeURIComponent(btn.getAttribute("data-json") || "");
+            const pretty = JSON.stringify(JSON.parse(raw), null, 2);
+            const w = window.open("", "_blank", "width=720,height=640");
+            w.document.write(
+              `<pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;padding:16px;margin:0;background:#0b0c0f;color:#e8eaed;">${esc(
+                pretty
+              )}</pre>`
+            );
+          });
+        });
+      }
+
       async function load() {
         els.err.textContent = "";
         const limit = Math.min(
@@ -377,7 +512,23 @@
 
           cache = data.chats || [];
           buildPlatformFilter(cache);
-          render();
+
+          if (currentSingleChat) {
+            // If we're in single chat view, update that specific chat
+            const chat = cache.find((c) => c.session_id === currentSingleChat);
+            if (chat) {
+              renderSingleChat(chat);
+              // Auto-scroll to bottom if auto-refresh is enabled
+              if (autoTimer) {
+                setTimeout(() => scrollToBottom(), 100);
+              }
+            } else {
+              // Chat no longer exists, go back to all chats
+              showAllChats();
+            }
+          } else {
+            render();
+          }
         } catch (e) {
           els.err.textContent = `Failed to load: ${e.message}`;
           els.grid.innerHTML = "";
@@ -463,7 +614,9 @@
             const phone = maskPhone(src.contact);
 
             return `
-          <div class="card" data-id="${esc(c.session_id)}">
+          <div class="card" data-id="${esc(
+            c.session_id
+          )}" style="cursor: pointer;">
             <div class="head">
               <div class="sid">Session ${esc(c.session_id)}</div>
               <div class="meta">
@@ -500,6 +653,19 @@
 
         els.grid.innerHTML = html;
 
+        // Wire card click handlers to show single chat view
+        els.grid.querySelectorAll(".card").forEach((card) => {
+          card.addEventListener("click", (e) => {
+            // Don't trigger if clicking on buttons
+            if (e.target.tagName === "BUTTON") return;
+
+            const sessionId = card.getAttribute("data-id");
+            if (sessionId) {
+              showSingleChat(sessionId);
+            }
+          });
+        });
+
         // Wire per-card buttons
         els.grid.querySelectorAll("button[data-copy]").forEach((btn) => {
           btn.addEventListener("click", () => {
@@ -530,6 +696,7 @@
       }
 
       // Events
+      els.backBtn.addEventListener("click", showAllChats);
       els.refresh.addEventListener("click", load);
       els.limit.addEventListener("change", load);
       els.platform.addEventListener("change", render);

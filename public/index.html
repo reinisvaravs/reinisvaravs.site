@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Setinbound Calendar & Email API Service</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+          Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: #e6edf3;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #0d1117;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #f0f6fc;
+      }
+      h1 {
+        font-size: 2rem;
+        border-bottom: 1px solid #30363d;
+        padding-bottom: 0.3rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        border-bottom: 1px solid #30363d;
+        padding-bottom: 0.3rem;
+      }
+      h3 {
+        font-size: 1.25rem;
+      }
+      code {
+        padding: 0.2rem 0.4rem;
+        background-color: #161b22;
+        color: #f0f6fc;
+        border-radius: 6px;
+        font-size: 85%;
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono",
+          Menlo, monospace;
+      }
+      pre {
+        padding: 1rem;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono",
+          Menlo, monospace;
+        font-size: 85%;
+        line-height: 1.45;
+      }
+      pre code {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        font-size: 100%;
+        color: #f0f6fc;
+      }
+      blockquote {
+        margin: 0;
+        padding: 0 1rem;
+        color: #8b949e;
+        border-left: 0.25rem solid #30363d;
+      }
+      ul,
+      ol {
+        padding-left: 2rem;
+      }
+      li {
+        margin: 0.25rem 0;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #30363d;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      th {
+        font-weight: 600;
+        background-color: #161b22;
+      }
+      a {
+        color: #58a6ff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .header-nav {
+        position: fixed;
+        top: 0;
+        right: 2rem;
+        background: #21262d;
+        padding: 0.5rem 1rem;
+        border-radius: 0 0 6px 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        border: 1px solid #30363d;
+        border-top: none;
+      }
+      .header-nav a {
+        margin: 0 0.5rem;
+        font-size: 0.9rem;
+        color: #58a6ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-nav">
+      <a href="/chats">📊 Chats</a>
+    </div>
+
+    <h1>Setinbound Calendar &amp; Email API Service</h1>
+    <h2>🚀 Overview</h2>
+    <p>
+      A comprehensive Google Calendar and Gmail integration service built with
+      Node.js and Express. This API provides robust calendar management, event
+      booking, and professional email sending capabilities for business
+      automation workflows.
+    </p>
+    <h2>✨ Key Features</h2>
+    <h3>📅 Calendar Management</h3>
+    <ul>
+      <li>
+        <strong>Calendar Availability</strong>: Check free/busy times across
+        multiple Google Workspaces
+      </li>
+      <li>
+        <strong>Event Booking</strong>: Create calendar events with automatic
+        Google Meet link generation
+      </li>
+      <li>
+        <strong>Multi-Workspace Support</strong>: Handle multiple Google
+        Workspace domains seamlessly
+      </li>
+      <li>
+        <strong>Timezone Handling</strong>: Full timezone support with automatic
+        UTC conversion
+      </li>
+      <li>
+        <strong>Domain-Wide Delegation</strong>: Service account impersonation
+        for enterprise security
+      </li>
+    </ul>
+    <h3>📧 Email System</h3>
+    <ul>
+      <li>
+        <strong>Professional HTML Emails</strong>: Beautiful, responsive email
+        templates
+      </li>
+      <li>
+        <strong>Custom Branding</strong>: Fully customizable company branding
+        and messaging
+      </li>
+      <li>
+        <strong>Dynamic Content</strong>: Conditional rendering based on
+        available event data
+      </li>
+      <li>
+        <strong>Multiple Recipients</strong>: Send to multiple attendees with
+        one API call
+      </li>
+      <li>
+        <strong>Monitoring Emails</strong>: Optional BCC monitoring for
+        developers and administrators
+      </li>
+      <li>
+        <strong>Gmail API Integration</strong>: Secure email sending via service
+        account impersonation
+      </li>
+    </ul>
+    <h3>🔒 Security &amp; Authentication</h3>
+    <ul>
+      <li>
+        <strong>API Key Protection</strong>: Secure endpoint access with
+        authentication headers
+      </li>
+      <li>
+        <strong>Environment Variables</strong>: All secrets stored securely in
+        <code>.env</code>
+      </li>
+      <li>
+        <strong>Service Account Authentication</strong>: Google service account
+        with Domain-Wide Delegation
+      </li>
+      <li>
+        <strong>Input Validation</strong>: Comprehensive request validation and
+        error handling
+      </li>
+    </ul>
+    <h2>🛠️ Tech Stack</h2>
+    <ul>
+      <li><strong>Backend</strong>: Node.js + Express.js</li>
+      <li><strong>Google APIs</strong>: Calendar API v3, Gmail API v1</li>
+      <li>
+        <strong>Authentication</strong>: Google Service Account with Domain-Wide
+        Delegation (DWD)
+      </li>
+      <li>
+        <strong>Development</strong>: Nodemon for hot reloading and development
+        efficiency
+      </li>
+      <li>
+        <strong>Testing</strong>: Custom test suite with comprehensive
+        validation
+      </li>
+    </ul>
+    <h2>📁 Project Structure</h2>
+    <pre><code>reinisvaravs.site/
+├── routes/                    # API route handlers
+│   ├── n8n.js                # Main business logic endpoints
+│   ├── api.js                # General API routes
+│   └── public.js             # Public frontend routes
+├── tests/                    # Comprehensive test suite
+│   ├── test_availability.js  # Calendar availability tests
+│   ├── test_event_booking.js # Event booking tests
+│   └── test_email_sending.js # Email sending tests
+├── public/                   # Static frontend files
+├── gCalendar.js             # Google Calendar integration logic
+├── emailService.js          # Gmail API and email template service
+├── db.js                    # Database utilities
+├── server.js                # Main Express server
+├── package.json             # Dependencies and scripts
+├── nodemon.json             # Development configuration
+└── .env                     # Environment variables (not in repo)
+</code></pre>
+    <h2>🔧 Setup &amp; Installation</h2>
+    <h3>Prerequisites</h3>
+    <ul>
+      <li>Node.js (v16 or higher)</li>
+      <li>Google Cloud Platform account</li>
+      <li>Google Workspace with Domain-Wide Delegation configured</li>
+    </ul>
+    <h3>Installation Steps</h3>
+    <ol>
+      <li>
+        <p><strong>Clone the repository</strong></p>
+        <pre><code class="language-bash">git clone &lt;repository-url&gt;
+cd reinisvaravs.site
+</code></pre>
+      </li>
+      <li>
+        <p><strong>Install dependencies</strong></p>
+        <pre><code class="language-bash">npm install
+</code></pre>
+      </li>
+      <li>
+        <p>
+          <strong>Configure environment variables</strong> Create a
+          <code>.env</code> file with:
+        </p>
+        <pre><code class="language-env">API_SECRET=your_api_secret_key
+GOOGLE_CREDENTIALS=your_google_service_account_json
+PORT=8383
+</code></pre>
+        <p>
+          <strong>Note</strong>: The <code>.env</code> file is ignored by git
+          for security. Only environment variables for secrets are stored here -
+          all other configuration comes from request bodies.
+        </p>
+      </li>
+      <li>
+        <p><strong>Setup Google Service Account</strong></p>
+        <ul>
+          <li>Create a service account in Google Cloud Console</li>
+          <li>Enable Calendar API and Gmail API</li>
+          <li>Configure Domain-Wide Delegation in Google Workspace Admin</li>
+          <li>
+            Add required scopes:
+            <ul>
+              <li><code>https://www.googleapis.com/auth/calendar</code></li>
+              <li><code>https://www.googleapis.com/auth/gmail.send</code></li>
+              <li>
+                <code>https://www.googleapis.com/auth/gmail.compose</code>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Start the development server</strong></p>
+        <pre><code class="language-bash">npm run dev
+</code></pre>
+      </li>
+    </ol>
+    <h2>🌐 API Endpoints</h2>
+    <h3>Calendar Management</h3>
+    <h4><strong>POST</strong> <code>/n8n/get_calendar_availability</code></h4>
+    <p>Check calendar availability for specific time periods.</p>
+    <p><strong>Required Headers:</strong></p>
+    <pre><code>x-api-key: YOUR_API_KEY
+Content-Type: application/json
+</code></pre>
+    <p><strong>Request Body:</strong></p>
+    <pre><code class="language-json">{
+  &quot;google_calendar_email&quot;: &quot;calendar@company.com&quot;,
+  &quot;timezone&quot;: &quot;Europe/Riga&quot;,
+  &quot;days&quot;: 7,
+  &quot;work_start_hour&quot;: 9,
+  &quot;work_end_hour&quot;: 17,
+  &quot;slot_duration_minutes&quot;: 60
+}
+</code></pre>
+    <h4><strong>POST</strong> <code>/n8n/book_calendar_event</code></h4>
+    <p>Create calendar events with Google Meet integration.</p>
+    <p><strong>Request Body:</strong></p>
+    <pre><code class="language-json">{
+  &quot;event_title&quot;: &quot;Strategy Meeting&quot;,
+  &quot;event_description&quot;: &quot;Quarterly planning session&quot;,
+  &quot;start_time&quot;: &quot;2025-08-28T10:00:00+03:00&quot;,
+  &quot;end_time&quot;: &quot;2025-08-28T11:30:00+03:00&quot;,
+  &quot;timezone&quot;: &quot;Europe/Riga&quot;,
+  &quot;attendees&quot;: [&quot;user1@company.com&quot;, &quot;user2@company.com&quot;],
+  &quot;google_calendar_email&quot;: &quot;calendar@company.com&quot;
+}
+</code></pre>
+    <h3>Email System</h3>
+    <h4><strong>POST</strong> <code>/n8n/send_event_email</code></h4>
+    <p>Send professional HTML event confirmation emails.</p>
+    <p><strong>Request Body:</strong></p>
+    <pre><code class="language-json">{
+  &quot;event_title&quot;: &quot;Board Meeting&quot;,
+  &quot;event_description&quot;: &quot;Monthly board meeting&quot;,
+  &quot;start_time&quot;: &quot;2025-08-28T14:00:00+02:00&quot;,
+  &quot;end_time&quot;: &quot;2025-08-28T16:00:00+02:00&quot;,
+  &quot;timezone&quot;: &quot;Europe/Berlin&quot;,
+  &quot;attendees&quot;: [&quot;user1@company.com&quot;, &quot;user2@company.com&quot;],
+  &quot;meet_link&quot;: &quot;https://meet.google.com/abc-def-ghi&quot;,
+  &quot;event_link&quot;: &quot;https://calendar.google.com/event/123&quot;,
+  &quot;organizer_name&quot;: &quot;John Smith&quot;,
+  &quot;organizer_email&quot;: &quot;john@company.com&quot;,
+  &quot;impersonate_email&quot;: &quot;admin@company.com&quot;,
+
+  // Optional monitoring emails (BCC)
+  &quot;monitoring_emails&quot;: [&quot;developer@company.com&quot;, &quot;admin@company.com&quot;],
+
+  &quot;company_name&quot;: &quot;ACME Corporation&quot;,
+  &quot;email_subject_prefix&quot;: &quot;Meeting Invitation&quot;,
+  &quot;email_header_title&quot;: &quot;Meeting Confirmed&quot;,
+  &quot;email_header_subtitle&quot;: &quot;Your meeting has been scheduled&quot;,
+  &quot;footer_company_name&quot;: &quot;ACME Corp Calendar System&quot;,
+  &quot;footer_message&quot;: &quot;This is an automated confirmation&quot;,
+  &quot;sender_name&quot;: &quot;John Smith, CEO&quot;
+}
+</code></pre>
+    <p><strong>Key Parameters:</strong></p>
+    <ul>
+      <li>
+        <p><strong>Required:</strong></p>
+        <ul>
+          <li><code>event_title</code> - Event name/title</li>
+          <li><code>start_time</code> - Event start time (ISO 8601 format)</li>
+          <li><code>end_time</code> - Event end time (ISO 8601 format)</li>
+          <li><code>attendees</code> - Array of attendee email addresses</li>
+          <li>
+            <code>impersonate_email</code> - Email address to send from (must
+            have domain-wide delegation)
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Optional:</strong></p>
+        <ul>
+          <li>
+            <code>monitoring_emails</code> - Array of BCC email addresses for
+            monitoring/administration
+          </li>
+          <li><code>event_description</code> - Event description text</li>
+          <li>
+            <code>timezone</code> - Event timezone (defaults to
+            &quot;Europe/Riga&quot;)
+          </li>
+          <li><code>meet_link</code> - Google Meet link URL</li>
+          <li><code>event_link</code> - Calendar event link URL</li>
+          <li><code>organizer_name</code> - Organizer display name</li>
+          <li><code>organizer_email</code> - Organizer email address</li>
+          <li>
+            Custom branding fields (company_name, email_subject_prefix, etc.)
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p><strong>Response:</strong></p>
+    <pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;message_id&quot;: &quot;198d906040630688&quot;,
+    &quot;thread_id&quot;: &quot;198d906040630688&quot;,
+    &quot;sent_to&quot;: [&quot;user1@company.com&quot;, &quot;user2@company.com&quot;],
+    &quot;sent_count&quot;: 2,
+    &quot;monitoring_emails&quot;: [&quot;developer@company.com&quot;],
+    &quot;total_emails_sent&quot;: 3
+  }
+}
+</code></pre>
+    <h2>🧪 Testing</h2>
+    <p>
+      The project includes comprehensive tests for all major functionality
+      (tests are not included in git but available locally during development):
+    </p>
+    <h3>Run Individual Tests</h3>
+    <pre><code class="language-bash"># Test calendar availability
+node tests/test_availability.js
+
+# Test event booking (full flow)
+node tests/test_event_booking.js
+
+# Test email sending (with custom branding)
+node tests/test_email_sending.js
+</code></pre>
+    <p>
+      <strong>Note:</strong> Test files are excluded from version control for
+      security (they contain API calls with real credentials).
+    </p>
+    <h3>Test Features</h3>
+    <ul>
+      <li>
+        ✅ <strong>Calendar Availability</strong>: Real-time free/busy checking
+      </li>
+      <li>
+        ✅ <strong>Event Booking</strong>: Full event creation with Google Meet
+        links
+      </li>
+      <li>
+        ✅ <strong>Email Sending</strong>: Professional HTML emails with custom
+        branding
+      </li>
+      <li>
+        ✅ <strong>Monitoring Emails</strong>: BCC functionality for
+        developer/admin oversight
+      </li>
+      <li>
+        ✅ <strong>Error Handling</strong>: Comprehensive validation and error
+        responses
+      </li>
+      <li>
+        ✅ <strong>Authentication</strong>: Service account and API key
+        validation
+      </li>
+      <li>
+        ✅ <strong>Timezone Support</strong>: Multi-timezone handling and
+        conversion
+      </li>
+    </ul>
+    <h2>🎨 Email Template Features</h2>
+    <h3>Dynamic Content Rendering</h3>
+    <ul>
+      <li>Event details only show if data is provided</li>
+      <li>Organizer information conditionally displayed</li>
+      <li>Google Meet and Calendar links appear when available</li>
+      <li>Custom branding throughout the template</li>
+    </ul>
+    <h3>Professional Design</h3>
+    <ul>
+      <li>Responsive HTML template compatible with all email clients</li>
+      <li>Clean, minimal design with professional typography</li>
+      <li>Custom company branding and messaging</li>
+      <li>Mobile-friendly responsive layout</li>
+    </ul>
+    <h3>Customization Options</h3>
+    <ul>
+      <li>
+        <strong>Company Branding</strong>: Full company name and footer
+        customization
+      </li>
+      <li><strong>Subject Lines</strong>: Custom prefixes and formatting</li>
+      <li>
+        <strong>Header Content</strong>: Personalized titles and subtitles
+      </li>
+      <li><strong>Footer Messages</strong>: Custom footer text and branding</li>
+    </ul>
+    <h3>Monitoring &amp; Administration</h3>
+    <ul>
+      <li>
+        <strong>BCC Monitoring</strong>: Optional
+        <code>monitoring_emails</code> field sends copies to
+        developers/administrators
+      </li>
+      <li>
+        <strong>Privacy Protection</strong>: Primary attendees cannot see
+        monitoring email addresses
+      </li>
+      <li>
+        <strong>Multiple Monitors</strong>: Support for multiple monitoring
+        email addresses
+      </li>
+      <li>
+        <strong>Optional Feature</strong>: Works seamlessly with or without
+        monitoring emails
+      </li>
+      <li>
+        <strong>Organizer Display</strong>: Professional sender information
+      </li>
+    </ul>
+    <h2>🔐 Security Best Practices</h2>
+    <h3>Environment Variables</h3>
+    <ul>
+      <li>
+        All secrets stored in <code>.env</code> file (never committed to
+        repository)
+      </li>
+      <li>Service account credentials loaded from environment</li>
+      <li>API keys validated on every request</li>
+      <li>
+        Only secrets use environment variables - all other configuration comes
+        from request bodies
+      </li>
+    </ul>
+    <h3>Google Authentication</h3>
+    <ul>
+      <li>Service account with Domain-Wide Delegation</li>
+      <li>Minimal required scopes for Calendar and Gmail APIs</li>
+      <li>Secure impersonation for multi-workspace support</li>
+    </ul>
+    <h3>Input Validation</h3>
+    <ul>
+      <li>Comprehensive request body validation</li>
+      <li>Email format verification</li>
+      <li>Timezone and datetime validation</li>
+      <li>Attendee array validation</li>
+    </ul>
+    <h2>🚀 Development</h2>
+    <h3>Development Server</h3>
+    <pre><code class="language-bash">npm run dev  # Starts with nodemon for auto-reload
+</code></pre>
+    <h3>Production Server</h3>
+    <pre><code class="language-bash">npm start    # Standard Node.js server
+</code></pre>
+    <h3>Hot Reloading</h3>
+    <p>
+      Nodemon is configured to watch all relevant files and restart
+      automatically on changes.
+    </p>
+    <h3>Version Control</h3>
+    <p><strong>Files included in git:</strong></p>
+    <ul>
+      <li>All source code (<code>*.js</code>)</li>
+      <li>Core configuration (<code>package.json</code>)</li>
+      <li>Documentation (<code>README.md</code>)</li>
+      <li>Route handlers (<code>routes/</code>)</li>
+    </ul>
+    <p><strong>Files ignored by git:</strong></p>
+    <ul>
+      <li>Environment variables (<code>.env</code>, <code>.env.*</code>)</li>
+      <li>Dependencies (<code>node_modules/</code>)</li>
+      <li>Development configuration (<code>nodemon.json</code>)</li>
+      <li>Test suite (<code>tests/</code> directory)</li>
+      <li>Temporary files (<code>uploads/</code>, <code>converted/</code>)</li>
+      <li>System files (<code>.DS_Store</code>, logs)</li>
+      <li>Build artifacts and cache files</li>
+    </ul>
+    <h2>📋 Requirements</h2>
+    <h3>Google Cloud Setup</h3>
+    <ol>
+      <li>Enable Calendar API and Gmail API</li>
+      <li>Create service account with JSON key</li>
+      <li>Configure Domain-Wide Delegation in Google Workspace Admin</li>
+      <li>Add required API scopes</li>
+    </ol>
+    <h3>Environment Configuration</h3>
+    <ul>
+      <li>Node.js environment with all dependencies</li>
+      <li>
+        Secure <code>.env</code> file with all required variables (secrets only)
+      </li>
+      <li>Network access to Google APIs</li>
+      <li>
+        <code>nodemon.json</code> for development configuration (not in git)
+      </li>
+      <li>
+        Comprehensive test suite in <code>tests/</code> directory (not in git)
+      </li>
+    </ul>
+    <h2>🎯 Use Cases</h2>
+    <p>Perfect for:</p>
+    <ul>
+      <li>
+        <strong>Business Automation</strong>: Streamline meeting scheduling and
+        confirmations
+      </li>
+      <li>
+        <strong>CRM Integration</strong>: Automated calendar and email workflows
+      </li>
+      <li>
+        <strong>Multi-Tenant Applications</strong>: Support multiple
+        organizations
+      </li>
+      <li>
+        <strong>Professional Services</strong>: Client meeting management and
+        communication
+      </li>
+      <li>
+        <strong>Enterprise Workflows</strong>: Scalable calendar and email
+        automation
+      </li>
+    </ul>
+    <hr />
+    <p><strong>Built with ❤️ for seamless business automation</strong></p>
+    <p>
+      <em
+        >Empowering businesses through intelligent calendar and email
+        automation</em
+      >
+    </p>
+    <hr />
+    <p><em>This README was enhanced with assistance from ChatGPT</em></p>
+  </body>
+</html>
