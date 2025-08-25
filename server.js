@@ -37,6 +37,10 @@ app.get("/chats", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "chats.html"));
 });
 
+app.get("/template", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "template.html"));
+});
+
 app.use("/", waWebhookRouter);
 app.use("/", publicRouter);
 app.use("/n8n", apiKeyMiddleware, n8nRouter);

@@ -38,4 +38,48 @@ router.get("/chats-data", async (req, res) => {
   }
 });
 
+// Template trigger endpoint
+router.post("/trigger-template", async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+
+    // Validate phone number
+    if (!phoneNumber || typeof phoneNumber !== "string") {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    // Send to n8n workflow
+    const n8nUrl = process.env.N8N_URL_TEMPLATE;
+    if (!n8nUrl) {
+      console.error("N8N_URL_TEMPLATE not configured in environment");
+      return res.status(500).json({ error: "n8n URL not configured" });
+    }
+
+    const response = await fetch(n8nUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phoneNumber: phoneNumber }),
+    });
+
+    if (!response.ok) {
+      console.error(
+        `n8n request failed: ${response.status} ${response.statusText}`
+      );
+      return res.status(502).json({ error: "Failed to trigger n8n workflow" });
+    }
+
+    console.log(`Template workflow triggered for phone number: ${phoneNumber}`);
+    res.json({
+      success: true,
+      message: `n8n workflow triggered for ${phoneNumber}`,
+      phoneNumber: phoneNumber,
+    });
+  } catch (error) {
+    console.error("Template trigger error:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;
