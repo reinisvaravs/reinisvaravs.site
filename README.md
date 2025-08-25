@@ -90,6 +90,11 @@ reinisvaravs.site/
    API_SECRET=your_api_secret_key
    GOOGLE_CREDENTIALS=your_google_service_account_json
    PORT=8383
+
+   # WhatsApp Webhook Configuration
+   VERIFY_TOKEN=your_verify_token_here
+   APP_SECRET=your_meta_app_secret_here
+   N8N_URL=https://<your-n8n-domain>/webhook/wa/inbound
    ```
 
    **Note**: The `.env` file is ignored by git for security. Only environment variables for secrets are stored here - all other configuration comes from request bodies.
@@ -285,6 +290,75 @@ node tests/test_email_sending.js
 - **Multiple Monitors**: Support for multiple monitoring email addresses
 - **Optional Feature**: Works seamlessly with or without monitoring emails
 - **Organizer Display**: Professional sender information
+
+## 📱 WhatsApp Integration
+
+### WhatsApp Webhook
+
+The service includes a WhatsApp webhook middleware that integrates with Meta's WhatsApp Business API to receive and forward inbound messages to n8n workflows.
+
+#### Features
+
+- **Meta Verification**: Handles Meta's webhook verification challenge
+- **Signature Verification**: Validates webhook signatures using APP_SECRET for security
+- **Message Filtering**: Only forwards real inbound user messages to n8n
+- **Status Event Filtering**: Automatically drops status-only events to save n8n executions
+- **Immediate Response**: Returns 200 OK immediately before processing for optimal performance
+
+#### Webhook Endpoints
+
+**GET** `/wa/webhook` - Meta verification endpoint
+
+- Handles Meta's verification challenge during webhook setup
+- Validates VERIFY_TOKEN against environment variable
+- Returns challenge on successful verification
+
+**POST** `/wa/webhook` - Message webhook endpoint
+
+- Receives WhatsApp messages from Meta
+- Verifies request signatures (if APP_SECRET is configured)
+- Filters and forwards only inbound user messages to n8n
+- Logs events for monitoring (drops vs forwards)
+
+#### Setup Instructions
+
+1. **Configure Environment Variables**
+
+   ```env
+   VERIFY_TOKEN=your_verify_token_here
+   APP_SECRET=your_meta_app_secret_here  # Optional but recommended
+   N8N_URL=https://<your-n8n-domain>/webhook/wa/inbound
+   ```
+
+2. **Meta Configuration**
+
+   - Meta callback URL: `https://<your-domain>/wa/webhook`
+   - Set Verify Token to your `VERIFY_TOKEN` value
+   - Click "Verify & Save" in WhatsApp → Configuration → Webhook
+
+3. **Message Processing**
+   - Only message events are forwarded to n8n
+   - Status events are automatically discarded to save executions
+   - Messages from business account (`from_me: true`) are filtered out
+   - Only real inbound user messages are processed
+
+#### Security
+
+- **Signature Verification**: Uses `X-Hub-Signature-256` header with HMAC-SHA256
+- **Flexible Security**: If `APP_SECRET` is unset, requests are allowed (for development)
+- **Timing-Safe Comparison**: Uses `crypto.timingSafeEqual` to prevent timing attacks
+
+#### Local Testing
+
+```bash
+# Test verification handshake (should return 200 + challenge)
+curl -s "http://localhost:8383/wa/webhook?hub.mode=subscribe&hub.verify_token=$VERIFY_TOKEN&hub.challenge=123"
+
+# Test inbound message simulation (should forward to N8N_URL)
+curl -s -X POST http://localhost:8383/wa/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"entry":[{"changes":[{"value":{"messages":[{"id":"ABCD","from":"123","from_me":false,"type":"text","text":{"body":"hi"}}]}}]}]}'
+```
 
 ## 🔐 Security Best Practices
 

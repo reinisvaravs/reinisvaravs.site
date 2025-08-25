@@ -4,6 +4,7 @@ import express from "express";
 import n8nRouter from "./routes/n8n.js";
 import publicRouter from "./routes/public.js";
 import apiRouter from "./routes/api.js";
+import waWebhookRouter from "./routes/waWebhook.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -11,7 +12,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.static(path.join(__dirname, "public")));
 
 // Global API key middleware for /n8n routes
@@ -30,6 +37,7 @@ app.get("/chats", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "chats.html"));
 });
 
+app.use("/", waWebhookRouter);
 app.use("/", publicRouter);
 app.use("/n8n", apiKeyMiddleware, n8nRouter);
 app.use("/api", apiKeyMiddleware, apiRouter);
