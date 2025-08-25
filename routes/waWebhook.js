@@ -186,6 +186,93 @@ protectedRouter.post("/wa/send", async (req, res) => {
   }
 });
 
+/**
+ * POST /wa/template - Send WhatsApp template message
+ * Used for initiating conversations (24-hour window requirement)
+ * Requires x-api-key header for authentication (handled at server level)
+ */
+protectedRouter.post("/wa/template", async (req, res) => {
+  try {
+    const {
+      to,
+      template_name,
+      language_code = "en",
+      parameters = [],
+    } = req.body;
+
+    // Validate required fields
+    if (!to || !template_name) {
+      return res.status(400).json({
+        error: "Missing required fields: 'to' and 'template_name'",
+      });
+    }
+
+    // Prepare template message payload for WhatsApp Business API
+    const templatePayload = {
+      messaging_product: "whatsapp",
+      to: to,
+      type: "template",
+      template: {
+        name: template_name,
+        language: {
+          code: language_code,
+        },
+      },
+    };
+
+    // Add parameters if provided
+    if (parameters && parameters.length > 0) {
+      templatePayload.template.components = [
+        {
+          type: "body",
+          parameters: parameters.map((param) => ({
+            type: "text",
+            text: param,
+          })),
+        },
+      ];
+    }
+
+    // Send to WhatsApp Business API
+    const whatsappApiUrl = `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`;
+
+    const response = await fetch(whatsappApiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(templatePayload),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("WhatsApp template send error:", responseData);
+      return res.status(response.status).json({
+        error: "Failed to send WhatsApp template",
+        details: responseData,
+      });
+    }
+
+    console.log(
+      `WhatsApp template '${template_name}' sent successfully to ${to}`
+    );
+    res.json({
+      success: true,
+      template_name: template_name,
+      message_id: responseData.messages?.[0]?.id,
+      data: responseData,
+    });
+  } catch (error) {
+    console.error("WhatsApp template endpoint error:", error.message);
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
+  }
+});
+
 export default router;
 export { protectedRouter as waProtectedRouter };
 
@@ -205,4 +292,10 @@ curl -s -X POST http://localhost:3000/wa/send \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY" \
   -d '{"to":"1234567890","message":"Hello from n8n!"}'
+
+# Send WhatsApp template message (requires API key)
+curl -s -X POST http://localhost:3000/wa/template \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{"to":"1234567890","template_name":"hello_world","language_code":"en","parameters":["John"]}'
 */
