@@ -4,7 +4,7 @@ import express from "express";
 import n8nRouter from "./routes/n8n.js";
 import publicRouter from "./routes/public.js";
 import apiRouter from "./routes/api.js";
-import waWebhookRouter from "./routes/waWebhook.js";
+import waWebhookRouter, { waProtectedRouter } from "./routes/waWebhook.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -41,6 +41,7 @@ app.use("/", waWebhookRouter);
 app.use("/", publicRouter);
 app.use("/n8n", apiKeyMiddleware, n8nRouter);
 app.use("/api", apiKeyMiddleware, apiRouter);
+app.use("/", apiKeyMiddleware, waProtectedRouter);
 
 const PORT = process.env.PORT || 8383;
 

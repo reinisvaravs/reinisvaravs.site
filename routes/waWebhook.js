@@ -2,6 +2,7 @@ import express from "express";
 import crypto from "crypto";
 
 const router = express.Router();
+const protectedRouter = express.Router();
 
 /**
  * Verify Meta signature using APP_SECRET and raw request body
@@ -121,8 +122,9 @@ router.post("/wa/webhook", async (req, res) => {
 /**
  * POST /wa/send - Send WhatsApp message
  * Used by n8n to send responses back to users
+ * Requires x-api-key header for authentication (handled at server level)
  */
-router.post("/wa/send", async (req, res) => {
+protectedRouter.post("/wa/send", async (req, res) => {
   try {
     const { to, message, type = "text" } = req.body;
 
@@ -185,6 +187,7 @@ router.post("/wa/send", async (req, res) => {
 });
 
 export default router;
+export { protectedRouter as waProtectedRouter };
 
 /*
 Local test commands:
@@ -196,4 +199,10 @@ curl -s "http://localhost:3000/wa/webhook?hub.mode=subscribe&hub.verify_token=$V
 curl -s -X POST http://localhost:3000/wa/webhook \
   -H "Content-Type: application/json" \
   -d '{"entry":[{"changes":[{"value":{"messages":[{"id":"ABCD","from":"123","from_me":false,"type":"text","text":{"body":"hi"}}]}}]}]}'
+
+# Send WhatsApp message (requires API key)
+curl -s -X POST http://localhost:3000/wa/send \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{"to":"1234567890","message":"Hello from n8n!"}'
 */
