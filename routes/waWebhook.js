@@ -118,6 +118,72 @@ router.post("/wa/webhook", async (req, res) => {
   }
 });
 
+/**
+ * POST /wa/send - Send WhatsApp message
+ * Used by n8n to send responses back to users
+ */
+router.post("/wa/send", async (req, res) => {
+  try {
+    const { to, message, type = "text" } = req.body;
+
+    // Validate required fields
+    if (!to || !message) {
+      return res.status(400).json({
+        error: "Missing required fields: 'to' and 'message'",
+      });
+    }
+
+    // Prepare message payload for WhatsApp Business API
+    const messagePayload = {
+      messaging_product: "whatsapp",
+      to: to,
+      type: type,
+    };
+
+    // Add message content based on type
+    if (type === "text") {
+      messagePayload.text = { body: message };
+    } else if (type === "template") {
+      messagePayload.template = message; // message should be template object
+    }
+
+    // Send to WhatsApp Business API
+    const whatsappApiUrl = `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`;
+
+    const response = await fetch(whatsappApiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(messagePayload),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("WhatsApp send error:", responseData);
+      return res.status(response.status).json({
+        error: "Failed to send WhatsApp message",
+        details: responseData,
+      });
+    }
+
+    console.log(`WhatsApp message sent successfully to ${to}`);
+    res.json({
+      success: true,
+      message_id: responseData.messages?.[0]?.id,
+      data: responseData,
+    });
+  } catch (error) {
+    console.error("WhatsApp send endpoint error:", error.message);
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
+  }
+});
+
 export default router;
 
 /*
